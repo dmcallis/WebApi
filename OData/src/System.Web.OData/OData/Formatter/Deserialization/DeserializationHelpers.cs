@@ -262,18 +262,25 @@ namespace System.Web.OData.Formatter.Deserialization
             {
                 Contract.Assert(!String.IsNullOrEmpty(untypedValue.RawValue));
 
-                if (untypedValue.RawValue.StartsWith("[", StringComparison.Ordinal) ||
-                    untypedValue.RawValue.StartsWith("{", StringComparison.Ordinal))
+                try
                 {
-                    throw new ODataException(Error.Format(SRResources.InvalidODataUntypedValue, untypedValue.RawValue));
-                }
+                    if (untypedValue.RawValue.StartsWith("[", StringComparison.Ordinal) ||
+                        untypedValue.RawValue.StartsWith("{", StringComparison.Ordinal))
+                    {
+                        throw new ODataException(Error.Format(SRResources.InvalidODataUntypedValue, untypedValue.RawValue));
+                    }
 
-                ODataCollectionValue collectionValue = (ODataCollectionValue)ODataUriUtils.ConvertFromUriLiteral(
-                    String.Format(CultureInfo.InvariantCulture, "[{0}]", untypedValue.RawValue), ODataVersion.V4);
-                foreach (object item in collectionValue.Items)
+                    ODataCollectionValue collectionValue = (ODataCollectionValue)ODataUriUtils.ConvertFromUriLiteral(
+                        String.Format(CultureInfo.InvariantCulture, "[{0}]", untypedValue.RawValue), ODataVersion.V4);
+                    foreach (object item in collectionValue.Items)
+                    {
+                        oDataValue = item;
+                        break;
+                    }
+                }
+                catch
                 {
-                    oDataValue = item;
-                    break;
+                    oDataValue = untypedValue.RawValue.Trim(new char[] { '"' });
                 }
             }
 
